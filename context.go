@@ -15,7 +15,7 @@ type Context[T Validator] struct {
 
 func With[T Validator](ctx *gin.Context) (*Context[T], error) {
 	c := with[T](ctx)
-	if err := ctx.ShouldBind(c.Body); err != nil {
+	if err := ctx.ShouldBind(&c.Body); err != nil {
 		return c, err
 	}
 	if err := c.Body.Valid(ctx); err != nil {
@@ -26,7 +26,7 @@ func With[T Validator](ctx *gin.Context) (*Context[T], error) {
 
 func WithJSON[T Validator](ctx *gin.Context) (*Context[T], error) {
 	c := with[T](ctx)
-	if err := ctx.ShouldBindJSON(c.Body); err != nil {
+	if err := ctx.ShouldBindJSON(&c.Body); err != nil {
 		return c, err
 	}
 	if err := c.Body.Valid(ctx); err != nil {
