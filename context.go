@@ -11,25 +11,29 @@ type Context[T Validator] struct {
 	UID string // user id
 	*gin.Context
 	Body T
+
+	signatureSecret string
 }
 
-func With[T Validator](ctx *gin.Context) (*Context[T], error) {
-	c := with[T](ctx)
-	if err := ctx.ShouldBind(&c.Body); err != nil {
+func With[T Validator](ctx *gin.Context) *Context[T] {
+	return with[T](ctx)
+}
+
+func (c *Context[T]) Bind() (*Context[T], error) {
+	if err := c.ShouldBind(&c.Body); err != nil {
 		return c, err
 	}
-	if err := c.Body.Valid(ctx); err != nil {
+	if err := c.Body.Valid(c.Context); err != nil {
 		return c, err
 	}
 	return c, nil
 }
 
-func WithJSON[T Validator](ctx *gin.Context) (*Context[T], error) {
-	c := with[T](ctx)
-	if err := ctx.ShouldBindJSON(&c.Body); err != nil {
+func (c *Context[T]) BindJSON() (*Context[T], error) {
+	if err := c.ShouldBindJSON(&c.Body); err != nil {
 		return c, err
 	}
-	if err := c.Body.Valid(ctx); err != nil {
+	if err := c.Body.Valid(c.Context); err != nil {
 		return c, err
 	}
 	return c, nil

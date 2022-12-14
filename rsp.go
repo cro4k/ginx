@@ -1,6 +1,9 @@
 package ginx
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 const (
 	CodeFail = 0
@@ -95,5 +98,17 @@ func (c *Context[T]) rsp(code int, message string, data ...interface{}) {
 	if len(data) > 0 {
 		rsp.Data = data[0]
 	}
-	c.JSON(http.StatusOK, rsp)
+	if c.signatureSecret != "" {
+		s := NewSigner(c.Writer, c.signatureSecret)
+		_ = json.NewEncoder(s).Encode(rsp)
+		c.Writer.Header().Set("signature", s.Signature())
+		c.Writer.Header().Set("Content-Type", "application/json")
+	} else {
+		c.JSON(http.StatusOK, rsp)
+	}
+}
+
+func (c *Context[T]) Sign(secret string) *Context[T] {
+	c.signatureSecret = secret
+	return c
 }
